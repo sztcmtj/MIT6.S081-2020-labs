@@ -98,12 +98,19 @@ sys_uptime(void)
 }
 
 int sys_sigalarm(void) {
-  int n;
-  uint64 p;
-  if (argint(0, &n) < 0 || argaddr(1, &p) < 0) {
+  int interval;
+  uint64 handler;
+  if (argint(0, &interval) < 0 || argaddr(1, &handler) < 0) {
     return -1;
   }
-  myproc()->interval = n;
-  myproc()->handler = (void (*)())p;
+  myproc()->alarm_interval = interval;
+  myproc()->alarm_handler = handler;
+  return 0;
+}
+
+int sys_sigreturn(void) {
+  struct proc* p = myproc();
+  memmove(p->trapframe, &(p->user_trapframe), sizeof(struct trapframe));
+  myproc()->alarm_passed = 0;
   return 0;
 }
